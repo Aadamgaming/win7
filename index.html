@@ -3,225 +3,194 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Windows 7 Mock-Up</title>
+    <title>Windows 7 Installer Simulation</title>
     <style>
+        /* Base Styles */
         body {
             margin: 0;
-            font-family: Arial, sans-serif;
-            background-image: url('background.jpg'); /* Add your Windows 7 background image here */
+            overflow: hidden;
+            background-image: url('background2.jpg'); /* Background image for the body */
+            background-size: cover; /* Cover the entire screen */
+            background-repeat: no-repeat; /* Prevent repetition */
+            background-position: center; /* Center the image */
+            height: 100vh; /* Full viewport height */
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Windows-like font */
+            cursor: default; /* Show default cursor initially */
+            transition: background-color 1s ease; /* Smooth background color transition */
+        }
+
+        /* Fullscreen Video */
+        #video {
+            position: fixed; /* Fixed positioning to cover the viewport */
+            top: 0;
+            left: 0;
+            width: 100vw; /* Full viewport width */
+            height: 100vh; /* Full viewport height */
+            object-fit: cover; /* Scale the video to cover the area */
+            display: none; /* Hidden by default */
+            z-index: 5; /* Below the installation dialog */
+        }
+
+        /* Installation Dialog */
+        #install-dialog {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 400px;
+            transform: translate(-50%, -50%);
+            background-image: url('background.png'); /* Background image for dialog */
             background-size: cover;
-            height: 100vh;
+            background-position: center;
+            border: 2px solid #000080; /* Windows blue border */
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            z-index: 10; /* Above the video */
+            color: white; /* Text color */
+            text-align: center;
+            opacity: 1;
+            transition: opacity 1s; /* Smooth fade-out */
+        }
+
+        /* Loading Bar */
+        #loading-bar {
+            width: 100%;
+            background-color: #444; /* Dark gray background */
+            border-radius: 5px;
+            margin-top: 20px;
             overflow: hidden;
         }
 
-        .taskbar {
-            background-color: #3c3f41;
-            color: white;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            padding: 0 10px;
-            position: absolute;
-            bottom: 0;
-            width: 100%;
+        #loading-progress {
+            height: 20px;
+            background-color: #0f0; /* Green progress */
+            width: 0%;
+            transition: width 0.1s;
         }
 
-        .start-menu {
-            position: relative;
-        }
-
-        .start-menu button {
-            background-color: #0078d7;
+        /* Install Button */
+        button {
+            background-color: #000080; /* Windows blue */
             color: white;
             border: none;
-            padding: 5px 10px;
+            padding: 10px 20px;
+            border-radius: 5px;
             cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
         }
 
-        .start-menu-content {
-            display: none;
-            position: absolute;
-            background-color: white;
-            color: black;
-            border: 1px solid #ccc;
-            width: 150px;
-            z-index: 1;
+        button:hover {
+            background-color: #0000ff; /* Lighter blue on hover */
         }
 
-        .start-menu-content ul {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .start-menu-content li {
-            padding: 5px 10px;
-            cursor: pointer;
-        }
-
-        .start-menu-content li:hover {
-            background-color: #0078d7;
-            color: white;
-        }
-
-        .taskbar-icons {
-            margin-left: auto;
-        }
-
-        .icon {
-            background-color: #ffffff;
-            border: 1px solid #ccc;
-            padding: 10px;
-            margin: 10px;
-            display: inline-block;
-            cursor: pointer;
-            position: relative;
-        }
-
-        .desktop {
-            padding: 20px;
-            height: calc(100vh - 40px);
-            position: relative;
-        }
-
-        .window {
-            width: 300px;
-            height: 200px;
-            background-color: white;
-            border: 2px solid #0078d7;
-            position: absolute;
-            display: none;
-            z-index: 10;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-        }
-
-        .window-header {
-            background-color: #0078d7;
-            color: white;
-            padding: 5px;
-            cursor: move;
-            display: flex;
-            justify-content: space-between;
-        }
-
-        .close-btn {
-            cursor: pointer;
-        }
-
-        .window-content {
-            padding: 10px;
-            height: calc(100% - 30px);
-        }
     </style>
 </head>
 <body>
-    <div class="taskbar">
-        <div class="start-menu" id="start-menu">
-            <button onclick="toggleStartMenu()">Start</button>
-            <div class="start-menu-content" id="start-menu-content">
-                <ul>
-                    <li>Documents</li>
-                    <li>Pictures</li>
-                    <li>Music</li>
-                    <li>Games</li>
-                    <li>Control Panel</li>
-                    <li>Shut Down</li>
-                </ul>
-            </div>
-        </div>
-        <div class="taskbar-icons">
-            <span class="icon">🔍</span>
-            <span class="icon">🖥️</span>
+
+    <!-- Installation Dialog -->
+    <div id="install-dialog">
+        <h2>Welcome to Windows 7 Installer</h2>
+        <p>Click the button below to start the installation:</p>
+        <button onclick="startInstallation()">Install</button>
+        <div id="loading-bar">
+            <div id="loading-progress"></div>
         </div>
     </div>
 
-    <div class="desktop" id="desktop">
-        <h1>Desktop</h1>
-        <div class="icon" id="myApp" onclick="openWindow()" onmousedown="startDrag(event, this)">🖥️ My Application</div>
-    </div>
-
-    <div class="window" id="appWindow" style="display:none;">
-        <div class="window-header" onmousedown="startMove(event, this.parentNode)">
-            <span>My App Window</span>
-            <span class="close-btn" onclick="closeWindow()">✖</span>
-        </div>
-        <div class="window-content"></div>
-    </div>
+    <!-- Fullscreen Video Element -->
+    <video id="video" autoplay>
+        <source id="video-source" src="" type="video/mp4">
+        Your browser does not support HTML5 video.
+    </video>
 
     <script>
-        function toggleStartMenu() {
-            const startMenu = document.getElementById('start-menu-content');
-            startMenu.style.display = startMenu.style.display === 'block' ? 'none' : 'block';
-        }
+        // Start the installation simulation
+        function startInstallation() {
+            const loadingProgress = document.getElementById('loading-progress');
+            let progress = 0;
 
-        window.onclick = function(event) {
-            if (!event.target.matches('.start-menu button')) {
-                const dropdowns = document.getElementsByClassName("start-menu-content");
-                for (let i = 0; i < dropdowns.length; i++) {
-                    dropdowns[i].style.display = "none";
+            // Simulate loading by incrementing the progress bar
+            const loadingIntervalSim = setInterval(() => {
+                if (progress < 100) {
+                    progress += 2; // Increment by 2%
+                    loadingProgress.style.width = progress + '%';
+                } else {
+                    clearInterval(loadingIntervalSim);
+                    fadeOutDialog();
                 }
-            }
+            }, 100); // Update every 100ms
         }
 
-        function openWindow() {
-            const appWindow = document.getElementById('appWindow');
-            appWindow.style.display = 'block';
-            appWindow.style.top = '100px'; // Default position
-            appWindow.style.left = '100px'; // Default position
+        // Fade out the installation dialog and start playing the first video
+        function fadeOutDialog() {
+            const dialog = document.getElementById('install-dialog');
+            dialog.style.opacity = '0'; // Start fade-out
+
+            setTimeout(() => {
+                dialog.style.display = 'none'; // Hide after fade-out
+                hideDefaultCursor(); // Hide the default cursor
+                playStartupVideo(); // Play the first video
+            }, 1000); // Match the CSS transition duration
         }
 
-        function closeWindow() {
-            const appWindow = document.getElementById('appWindow');
-            appWindow.style.display = 'none';
+        // Hide the default mouse cursor
+        function hideDefaultCursor() {
+            document.body.style.cursor = 'none';
         }
 
-        function startDrag(event, element) {
-            element.initialX = event.clientX;
-            element.initialY = event.clientY;
-            element.initialLeft = parseInt(window.getComputedStyle(element).left, 10) || 0;
-            element.initialTop = parseInt(window.getComputedStyle(element).top, 10) || 0;
-
-            document.onmousemove = function(moveEvent) {
-                let newLeft = element.initialLeft + (moveEvent.clientX - element.initialX);
-                let newTop = element.initialTop + (moveEvent.clientY - element.initialY);
-                
-                // Snap to grid (20x20 pixels)
-                newLeft = Math.round(newLeft / 20) * 20;
-                newTop = Math.round(newTop / 20) * 20;
-
-                element.style.left = newLeft + 'px';
-                element.style.top = newTop + 'px';
-            }
-
-            document.onmouseup = function() {
-                document.onmousemove = null;
-                document.onmouseup = null;
-            }
+        // Show the default mouse cursor
+        function showDefaultCursor() {
+            document.body.style.cursor = 'default';
         }
 
-        function startMove(event, windowElement) {
-            windowElement.initialX = event.clientX;
-            windowElement.initialY = event.clientY;
-            windowElement.initialLeft = parseInt(window.getComputedStyle(windowElement).left, 10) || 0;
-            windowElement.initialTop = parseInt(window.getComputedStyle(windowElement).top, 10) || 0;
+        // Play the first video
+        function playStartupVideo() {
+            const video = document.getElementById('video');
+            const videoSource = document.getElementById('video-source');
 
-            document.onmousemove = function(moveEvent) {
-                let newLeft = windowElement.initialLeft + (moveEvent.clientX - windowElement.initialX);
-                let newTop = windowElement.initialTop + (moveEvent.clientY - windowElement.initialY);
-                
-                // Snap to grid (20x20 pixels)
-                newLeft = Math.round(newLeft / 20) * 20;
-                newTop = Math.round(newTop / 20) * 20;
+            videoSource.src = 'win7start.mp4'; // Set the first video source
+            video.style.display = 'block'; // Show the video element
 
-                windowElement.style.left = newLeft + 'px';
-                windowElement.style.top = newTop + 'px';
-            }
+            video.load(); // Load the video
+            video.play().catch((error) => {
+                console.error('Error trying to play the first video:', error);
+            });
 
-            document.onmouseup = function() {
-                document.onmousemove = null;
-                document.onmouseup = null;
-            }
+            // Listen for the end of the first video
+            video.addEventListener('ended', firstVideoEnded);
+        }
+
+        // Handler for when the first video ends
+        function firstVideoEnded() {
+            const video = document.getElementById('video');
+            const videoSource = document.getElementById('video-source');
+
+            // Remove the listener to prevent multiple triggers
+            video.removeEventListener('ended', firstVideoEnded);
+
+            // Play the second video
+            videoSource.src = 'winstarted.mp4';
+            video.load();
+            video.play().catch((error) => {
+                console.error('Error trying to play the second video:', error);
+            });
+
+            // Listen for the end of the second video
+            video.addEventListener('ended', secondVideoEnded);
+        }
+
+        // Handler for when the second video ends
+        function secondVideoEnded() {
+            const video = document.getElementById('video');
+            
+            // Fade the background to black when the video ends
+            document.body.style.backgroundColor = 'black';
+
+            // Hide the video element
+            video.style.display = 'none';
         }
     </script>
+
 </body>
 </html>
